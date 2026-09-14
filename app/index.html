@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="A clear view of project health, ownership, priorities, and recent activity.">
+    <title>Project Pulse</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main class="dashboard">
+      <header class="dashboard__header">
+        <div>
+          <p class="dashboard__eyebrow">Team workspace</p>
+          <h1>Project Pulse</h1>
+          <p class="dashboard__intro">
+            A quick, focused view of what your team is moving forward, what needs attention,
+            and where momentum is building.
+          </p>
+        </div>
+        <div class="dashboard__summary" aria-label="Project summary">
+          <span id="project-count">Loading projects…</span>
+        </div>
+      </header>
+
+      <section aria-labelledby="projects-heading">
+        <h2 id="projects-heading" class="visually-hidden">Projects</h2>
+        <div id="project-region" aria-live="polite">
+          <p class="empty-state">Loading project updates…</p>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      (() => {
+        const projectRegion = document.querySelector("#project-region");
+        const projectCount = document.querySelector("#project-count");
+        const unavailable = "Unavailable";
+
+        const displayValue = (value) => {
+          if (typeof value !== "string" || value.trim() === "") {
+            return unavailable;
+          }
+          return value.trim();
+        };
+
+        const variant = (value, allowedValues) => {
+          const normalizedValue = displayValue(value).toLowerCase().replace(/\s+/g, "-");
+          return allowedValues.includes(normalizedValue) ? normalizedValue : "unknown";
+        };
+
+        const createText = (tagName, text, className) => {
+          const element = document.createElement(tagName);
+          element.textContent = text;
+          if (className) {
+            element.className = className;
+          }
+          return element;
+        };
+
+        const createProjectCard = (project, index) => {
+          const card = createText("article", "", "project-card");
+          const name = displayValue(project.name);
+          const status = displayValue(project.status);
+          const priority = displayValue(project.priority);
+          const statusVariant = variant(project.status, ["active", "at-risk", "blocked", "complete", "planned"]);
+          const priorityVariant = variant(project.priority, ["high", "critical"]);
+          const title = createText("h2", name, "project-card__title");
+          const header = document.createElement("header");
+          const statusBadge = createText("span", status, "status-badge");
+          statusBadge.dataset.status = statusVariant;
+          statusBadge.setAttribute("aria-label", `Status: ${status}`);
+          header.className = "project-card__header";
+          title.id = `project-title-${index + 1}`;
+          header.append(title, statusBadge);
+          card.setAttribute("aria-labelledby", title.id);
+
+          const metadata = document.createElement("dl");
+          metadata.className = "project-card__meta";
+          const ownerTerm = createText("dt", "Owner");
+          const ownerDescription = createText("dd", displayValue(project.owner));
+          const priorityTerm = createText("dt", "Priority");
+          const priorityDescription = createText("dd", "", "project-priority");
+          priorityDescription.textContent = priority;
+          priorityDescription.dataset.priority = priorityVariant;
+          priorityDescription.setAttribute("aria-label", `Priority: ${priority}`);
+          metadata.append(ownerTerm, ownerDescription, priorityTerm, priorityDescription);
+
+          const activity = document.createElement("p");
+          activity.className = "project-card__activity";
+          activity.append(
+            createText("strong", "Recent activity"),
+            document.createTextNode(displayValue(project.recentActivity))
+          );
+
+          card.append(header, metadata, activity);
+          return card;
+        };
+
+        const renderProjects = (projects) => {
+          projectRegion.replaceChildren();
+          if (projects.length === 0) {
+            projectRegion.append(createText("p", "No projects are available yet. Add a project to see its pulse here.", "empty-state"));
+            projectCount.textContent = "0 projects";
+            return;
+          }
+
+          const projectList = document.createElement("div");
+          projectList.className = "dashboard__grid";
+          projectList.setAttribute("aria-label", "Project cards");
+          projects.forEach((project, index) => projectList.append(createProjectCard(project, index)));
+          projectRegion.append(projectList);
+          projectCount.textContent = `${projects.length} ${projects.length === 1 ? "project" : "projects"}`;
+        };
+
+        const renderError = (message) => {
+          projectRegion.replaceChildren(createText("p", message, "error-state"));
+          projectCount.textContent = "Project data unavailable";
+        };
+
+        fetch("project-data.json")
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(`Project data request failed with status ${response.status}.`);
+            }
+            return response.json();
+          })
+          .then((data) => {
+            if (!data || !Array.isArray(data.projects)) {
+              throw new Error("Project data must contain a projects array.");
+            }
+            if (data.projects.some((project) => !project || typeof project !== "object" || Array.isArray(project))) {
+              throw new Error("Project data contains an invalid project record.");
+            }
+            renderProjects(data.projects);
+          })
+          .catch((error) => {
+            console.error(error);
+            renderError("We couldn’t load project updates. Please check the project data and try again.");
+          });
+      })();
+    </script>
+  </body>
+</html>

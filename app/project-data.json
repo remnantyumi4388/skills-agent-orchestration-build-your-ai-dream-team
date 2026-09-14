@@ -1,0 +1,39 @@
+{
+  "projects": [
+    {
+      "name": "Atlas onboarding",
+      "owner": "Maya Chen",
+      "status": "Active",
+      "recentActivity": "Completed the guided setup review and queued the next usability test.",
+      "priority": "High"
+    },
+    {
+      "name": "Northstar analytics",
+      "owner": "Jordan Lee",
+      "status": "At risk",
+      "recentActivity": "Waiting on the event taxonomy decision before the reporting build can continue.",
+      "priority": "Critical"
+    },
+    {
+      "name": "Mobile field toolkit",
+      "owner": "Priya Nair",
+      "status": "Active",
+      "recentActivity": "Released the offline sync prototype to the pilot group for feedback.",
+      "priority": "High"
+    },
+    {
+      "name": "Customer story refresh",
+      "owner": "Alex Morgan",
+      "status": "Complete",
+      "recentActivity": "Published the new case study collection and shared the launch recap with sales.",
+      "priority": "Normal"
+    },
+    {
+      "name": "Workspace permissions",
+      "owner": "Sam Rivera",
+      "status": "Planned",
+      "recentActivity": "Drafted the rollout checklist and scheduled a technical discovery session.",
+      "priority": "Normal"
+    }
+  ]
+}
